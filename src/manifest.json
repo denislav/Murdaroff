@@ -1,0 +1,34 @@
+{
+  "manifest_version": 2,
+  "name": "Vladko",
+  "version": "1.0",
+  "author": "Denislav Savkov",
+  "description": "This extension converts automatically bulgarian words written in latin to cyrilic or english words written in cyrilic to latin. The extension is named after prof.Vladko Mudaroff, a famous expert in bulgarian language and host of TV show 'Ezik moy'(Language mine) on Bulgarian Narional Television.",
+  
+  "background": {
+    "scripts": [ "background.js" ]
+  },
+  "content_scripts": [
+    {
+      "matches": [ "*://*/*" ],
+      "js": [ "vladko.js" ],
+      "run_at" : "document_end",
+      "all_frames": true
+    }
+  ],
+   "omnibox": { "keyword" : " " },  
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "<all_urls>"
+  ],
+
+  "commands": {
+      "undo_transliteration": {
+        "suggested_key": {
+          "default": "Ctrl+Shift+Space"
+        },
+        "description": "Toggle feature foo"
+      }
+  }
+}
