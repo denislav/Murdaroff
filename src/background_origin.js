@@ -18,13 +18,14 @@ var keyboardLayout = {
     CYRILIC:1
 };
 
-
+var wordnikLoaded = false;
 var swagger = new client({
 	url: 'http://api.wordnik.com:80/v4/word.json',
 	success: function() {
     	swagger.word.getWord({word:'carses'},{responseContentType: 'application/json'},function(response){
     		console.log(response.obj.hasOwnProperty("canonicalForm")? response.obj.word + ' exists': response.obj.word + ' does not exist');
       		console.log('=== response ===');
+      		wordnikLoaded =true;
 			chrome.tabs.query({}, function(tabs){
 				for (var i = 0; i < tabs.length; i++) {				 
 				 chrome.tabs.sendMessage(
@@ -39,6 +40,19 @@ var swagger = new client({
   }
 });
 swagger.clientAuthorizations.add("apiKey", new client.ApiKeyAuthorization("api_key","eddc3027033322a3a96080687ee0d8fab8ba52dca55e97dae","query"));
+
+
+/**
+*	
+*/
+// chrome.runtime.onMessage.addListener(
+//     function (request, sender, sendResponse) {
+//         console.log('request.message ', request.message);
+//         var newMeta = document.createElement('meta');
+//         newMeta.setAttribute('name','wordnikLoaded');
+//         document.head.appendChild(newMeta);
+//     }
+// );
 
 /**
 * Decides which is the keyboard layout of the input text.
@@ -87,64 +101,71 @@ function cyrilic_to_latin(word){
 
 chrome.runtime.onMessage.addListener(
 	function (request, sender, sendResponse) {
-	    console.log(sender.tab ?
-	                "from a content script:" + sender.tab.url :
-	                "from the extension");
-		var alphabet = getAlphabet(request.word);
+		if (request.message == "isWordnikLoaded"){
+			sendResponse({
+				        	wordnikLoaded : wordnikLoaded
+			    			});
+		}
+		else {			
+		    console.log(sender.tab ?
+		                "from a content script:" + sender.tab.url :
+		                "from the extension");
+			var alphabet = getAlphabet(request.word);
 
-		if 	(alphabet == "latin") {
-			var transliterate = latin_to_cyrilic(request.word);
-			console.log('transliterate: '+ transliterate);
-			var transliterateIndex = rechko.indexOf( transliterate );
-			console.log('transliterateIndex: '+ transliterateIndex);
-		 	if (transliterateIndex != -1)
-			    swagger.word.getWord(
-			    	{word: request.word},
-			    	{responseContentType: 'application/json'},
-	    			function (response){
-		  				console.log('transliterateAgain: ', transliterate);
-		  				console.log('request.word: ' ,request.word);
-		  				console.log('!canonicalForm: ',!response.obj.hasOwnProperty("canonicalForm"));
-		  				if (!response.obj.hasOwnProperty("canonicalForm")) {
-		  					responseVladko = {
+			if 	(alphabet == "latin") {
+				var transliterate = latin_to_cyrilic(request.word);
+				console.log('transliterate: '+ transliterate);
+				var transliterateIndex = rechko.indexOf( transliterate );
+				console.log('transliterateIndex: '+ transliterateIndex);
+			 	if (transliterateIndex != -1)
+				    swagger.word.getWord(
+				    	{word: request.word},
+				    	{responseContentType: 'application/json'},
+		    			function (response){
+			  				console.log('transliterateAgain: ', transliterate);
+			  				console.log('request.word: ' ,request.word);
+			  				console.log('!canonicalForm: ',!response.obj.hasOwnProperty("canonicalForm"));
+			  				if (!response.obj.hasOwnProperty("canonicalForm")) {
+			  					responseVladko = {
+						        	result: "match",
+						        	word: transliterate,
+						        	original: request.word
+				    			};
+			  					console.log('responseVladko: ', responseVladko);
+					      		sendResponse(responseVladko);
+					      		console.log('after send response ');
+					      	}
+						}
+				    );    
+			}
+			else if (alphabet == "cyrilic") {
+			    var bg_index = rechko.indexOf(request.word);
+			    console.log('bg_word: '+ bg_index);
+			 	if (bg_index = -1) {
+			 		transliterate = cyrilic_to_latin(request.word) ;
+				    swagger.word.getWord({word: transliterate},{responseContentType: 'application/json'},function(response){
+		  				if (response.obj.hasOwnProperty("canonicalForm"))
+				      		sendResponse({
 					        	result: "match",
 					        	word: transliterate,
 					        	original: request.word
-			    			};
-		  					console.log('responseVladko: ', responseVladko);
-				      		sendResponse(responseVladko);
-				      		console.log('after send response ');
-				      	}
-					}
-			    );    
-		}
-		else if (alphabet == "cyrilic") {
-		    var bg_index = rechko.indexOf(request.word);
-		    console.log('bg_word: '+ bg_index);
-		 	if (bg_index = -1) {
-		 		transliterate = cyrilic_to_latin(request.word) ;
-			    swagger.word.getWord({word: transliterate},{responseContentType: 'application/json'},function(response){
-	  				if (response.obj.hasOwnProperty("canonicalForm"))
-			      		sendResponse({
-				        	result: "match",
-				        	word: transliterate,
-				        	original: request.word
-		    			});
-				});
+			    			});
+					});
+				}
 			}
+			return true;
 		}
-		return true;
 	}        
 );
 
 
-/**
-*	To handle undo of transliteration
-*	@todo
-*/
-chrome.commands.onCommand.addListener(function(command) {
-        console.log('Command:', command);
-      });
+// /**
+// *	To handle undo of transliteration
+// *	@todo
+// */
+// chrome.commands.onCommand.addListener(function(command) {
+//         console.log('Command:', command);
+//       });
 
 // console.log('before reader');
 // var reader = new FileReader();

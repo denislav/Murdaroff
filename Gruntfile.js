@@ -3,6 +3,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 	       webdriver: {
+          //vladko: {
 	           options: {
 	             desiredCapabilities: {
 	               browserName: 'chrome'
@@ -10,11 +11,21 @@ module.exports = function(grunt) {
 	           },
 	           allTest:{
 	    	      tests: 'test/mocha_test.js'
-	           }
+	           },
+             local:{
+              tests: 'test/local_test.js'
+             }
+          //}
         },
         watch: {
-          files: ['src/*.js', 'test/*.js'],
-          tasks: ['devTest']
+          all: {
+            files: ['src/*.js', 'test/*.js'],
+            tasks: ['devTest']
+          },
+          browserify: {
+            files: ['src/background_origin.js'],
+            tasks: ['browserify']
+          }
         },
         jsdoc : {
           dist : {
@@ -37,12 +48,15 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-webdriver');
   grunt.loadNpmTasks('grunt-jsdoc');
 
-  grunt.registerTask('devTest', ['browserify','webdriver']);
+  grunt.registerTask('devTestVladko', ['webdriver:local']);
+  grunt.registerTask('devTest', ['browserify','webdriver:allTest']);
+  grunt.registerTask('devTestAll', ['browserify','webdriver:allTest']);
   grunt.registerTask('test', ['webdriver']);
 
   grunt.registerTask('build', ['browserify','jsdoc']);
   //, function() {    grunt.log.write('Logging some stuff...').ok();  }
-
-  grunt.registerTask('default', ['watch']);
+  //grunt.registerTask('watchDev', ['watch:dev']);
+  grunt.registerTask('watchBrowserify', ['watch:browserify']);
+  grunt.registerTask('default', ['watch:all']);
 
 };

@@ -10,7 +10,7 @@
   },
   "content_scripts": [
     {
-      "matches": [ "*://*/*" ],
+      "matches": ["<all_urls>"],
       "js": [ "vladko.js" ],
       "run_at" : "document_end",
       "all_frames": true
@@ -19,6 +19,7 @@
    "omnibox": { "keyword" : " " },  
   "permissions": [
     "activeTab",
+    "background",
     "tabs",
     "<all_urls>"
   ],
