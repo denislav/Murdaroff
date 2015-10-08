@@ -141,15 +141,16 @@ chrome.runtime.onMessage.addListener(
 			else if (alphabet == "cyrilic") {
 			    var bg_index = rechko.indexOf(request.word);
 			    console.log('bg_word: '+ bg_index);
-			 	if (bg_index = -1) {
+			 	if (bg_index == -1) {
 			 		transliterate = cyrilic_to_latin(request.word) ;
 				    swagger.word.getWord({word: transliterate},{responseContentType: 'application/json'},function(response){
-		  				if (response.obj.hasOwnProperty("canonicalForm"))
+		  				if (response.obj.hasOwnProperty("canonicalForm")){
 				      		sendResponse({
 					        	result: "match",
 					        	word: transliterate,
 					        	original: request.word
 			    			});
+				      	}
 					});
 				}
 			}
