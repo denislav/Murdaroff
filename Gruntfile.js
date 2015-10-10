@@ -9,7 +9,7 @@ module.exports = function(grunt) {
 	               browserName: 'chrome'
 	             }
 	           },
-	           allTest:{
+	           onlineTest:{
 	    	      tests: 'test/mocha_test.js'
 	           },
              local:{
@@ -18,18 +18,19 @@ module.exports = function(grunt) {
           //}
         },
         watch: {
-          all: {
-            files: ['src/*.js', 'test/*.js'],
-            tasks: ['devTest']
+          browserify: {            
+              files: ['src/background_origin.js'],
+              tasks: ['browserify']
           },
-          browserify: {
-            files: ['src/background_origin.js'],
-            tasks: ['browserify']
+          runTest: {
+            files: ['src/*.js', 'test/*.js'],
+            tasks: ['test']
           }
         },
         jsdoc : {
           dist : {
-            src: ['src/*.js', 'test/*.js','readme.md'],
+            // src: ['src/*.js', 'test/*.js','readme.md'],
+            src: ['src/background_origin.js'],
             options: {
               destination: 'docs'
             }
@@ -49,14 +50,14 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-jsdoc');
 
   grunt.registerTask('devTestVladko', ['webdriver:local']);
-  grunt.registerTask('devTest', ['browserify','webdriver:allTest']);
-  grunt.registerTask('devTestAll', ['browserify','webdriver:allTest']);
-  grunt.registerTask('test', ['webdriver']);
+  grunt.registerTask('devTest', ['browserify','webdriver:onlineTest']);
+  grunt.registerTask('devTestOnline', ['browserify','webdriver:onlineTest']);
+  grunt.registerTask('test', ['webdriver:onlineTest']);
 
   grunt.registerTask('build', ['browserify','jsdoc']);
   //, function() {    grunt.log.write('Logging some stuff...').ok();  }
   //grunt.registerTask('watchDev', ['watch:dev']);
   grunt.registerTask('watchBrowserify', ['watch:browserify']);
-  grunt.registerTask('default', ['watch:all']);
+  grunt.registerTask('default', ['watch']);
 
 };
