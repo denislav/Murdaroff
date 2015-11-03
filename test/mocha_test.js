@@ -27,6 +27,14 @@ var transliterationDelay = 500;
 var wordnikDelay = 60000;
 
 /**
+* Period of accepted delay for browser starting up.
+* @memberof TestSuite
+* @member
+* @type {integer}
+*/
+var startupDelay = 5000;
+
+/**
 * The Selenium WebDriver object.
 * @memberof TestSuite
 * @member
@@ -62,9 +70,9 @@ startChrome = function(){
 */
 setupAndInput = function(input,result){
   driver = startChrome();    
-  
+
   driver.get('http://www.dnevnik.bg/');
-  
+
   driver.wait(until.elementsLocated(By.name('wordnikLoaded')), wordnikDelay);
 
   searchBox = driver.findElement(By.name('stext'));
@@ -115,7 +123,8 @@ dnevnikInputUndo = function(){
 }
 
 test.describe('Dnevnik.bg search', function() {
-
+  this.timeout( startupDelay + wordnikDelay + transliterationDelay );
+  
   test.it('should transliterate LAT->BG keyboard layout', function() {
     dnevnikInput('koza','коза');
   });
