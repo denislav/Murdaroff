@@ -75,11 +75,21 @@ var undoAllowed = false;
 * @function
 */
 function vladko(response,element) {
-    element.value = element.value.replace(response.original, response.word);
-    element.original = response.original;
+    element.original = element.value;
+    // var wordsBefore = element.value.substr(0, response.cursor).split(' ');
+    // var lastWord = wordsBefore[wordsBefore.length - 2];
+    element.value = element.value.slice(0, response.cursor - response.word.length) + response.word + element.value.slice(response.cursor,element.value.length)  ;
+    // element.value = element.value.replace(new RegExp(response.original, 'g'), response.word);//element.value.replace(response.original, response.word);    
+    element.selectionStart = response.cursor+1;
+    element.selectionEnd = response.cursor+1;
     undoAllowed = true ;
 }
 
+
+function getPreviousWord(element,cursor){
+    var wordsBefore = element.value.substr(0, element.selectionStart).split(' ');
+    var lastWord = wordsBefore[wordsBefore.length - 2];
+}
 /**
 * Executed on the event of user input is space bar (" ") 
 * in order to check the input for requred transliteration.
@@ -91,17 +101,25 @@ function vladko(response,element) {
 function onSpace(event, element) {
     if (event.keyCode == ' '.charCodeAt(0)) {
         if (event.ctrlKey === true) {
-            if (undoAllowed === true)
+            if (undoAllowed === true) {
+                var keepCursor = element.selectionStart;
                 element.value = element.original;
+                element.selectionStart = keepCursor;
+                element.selectionEnd = keepCursor;
+                undoAllowed = false;
+            }
         } else {
-            var words = event.currentTarget.value.split(' ');
-            var last = words.length;
-            var word2 = words[last - 1];
+            // var words = event.currentTarget.value.split(' ');
+            // var last = words.length;
+            // var word2 = words[last - 1];
+            var wordsBefore = element.value.substr(0, element.selectionStart).split(' ');
+            var lastWord = wordsBefore[wordsBefore.length - 1];
             if (wordnikLoaded === true){
                 chrome.runtime.sendMessage(
                     {
                         message: 'correctWord',
-                        word: word2
+                        word: lastWord,
+                        cursor: element.selectionStart
                     },
                     function (response) {
                         vladko(response,element);
@@ -139,14 +157,18 @@ function vladkoFacto(element) {
      var input = inputElements[i];
      var type = input.type;
      if (type == 'text') {
-         input.onkeypress = vladkoFacto(input);
+         // input.onkeypress = vladkoFacto(input);
+         input.onkeyup = vladkoFacto(input);
      }
  }
 
 document.addEventListener('click', function(event) {
     var input = event.srcElement;
-    if(input.type === 'text' || input.type === 'textarea' || input.tagName === 'input' || input.tagName === 'textarea') {
-        console.log('hooked on', input);
-        input.onkeypress = vladkoFacto(input);
+    if(input.type === 'text' ||
+       input.type === 'textarea' ||
+       input.tagName === 'input' ||
+       input.tagName === 'textarea') {
+            console.log('hooked on', input);
+            input.onkeypress = vladkoFacto(input);
     }
 });

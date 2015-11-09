@@ -1,7 +1,7 @@
 // 'use strict';
 
 var client = require('swagger-client');
-var rechko = require('../res/bg_dictionary');
+var rechko = require('../res/bgDictionary');
 
 /**
 * The background page of the Chrome extension.
@@ -75,8 +75,73 @@ var LATIN_KEYBOARD = "`qwertyuiop[]\\asdfghjkl;'zxcvbnm,./" + 'QWERTYUIOP{}|ASDF
 * @memberof Background
 * @const
 */
-var CYRILIC_KEYBOARD = "ючшертъуиопящьасдфгхйкл;'зжцвбнм,./" + 'ЮЧШЕРТЪУИОПЯЩѝАСДФГХЙКЛ:"ЗЖЦВБНМ„“?';
+var keyboard = {};
+var CYRILIC_KEYBOARD_PHONETIC_NEW = "ючшертъуиопящьасдфгхйкл;'зжцвбнм,./" + 'ЮЧШЕРТЪУИОПЯЩѝАСДФГХЙКЛ:"ЗЖЦВБНМ„“?';
+var CYRILIC_KEYBOARD_BDS = ",уеишщксдзц;„ьяаожгтнвмчюйъэфхпрлб" + 'ыУЕИШЩКСДЗЦ§“ѝЯАОЖГТНВМЧЮЙЪЭФХПРЛБ';
+var CYRILIC_KEYBOARD_PHONETIC_TRADITIONAL = "явертъуиопшщюасдфгхйкл;'зьцжбн,./" + 'ЯВЕРТЪУИОПШЩЮАСДФГХЙКЛ:"ЗѝЦЖБНМ<>?'
+var CYRILIC_KEYBOARD;
 
+keyboard.LATIN_KEYBOARD = "`qwertyuiop[]\\asdfghjkl;'zxcvbnm,./" + 'QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?';
+keyboard.CYRILIC_KEYBOARD_PHONETIC_NEW = "ючшертъуиопящьасдфгхйкл;'зжцвбнм,./" + 'ЮЧШЕРТЪУИОПЯЩѝАСДФГХЙКЛ:"ЗЖЦВБНМ„“?';
+keyboard.CYRILIC_KEYBOARD_BDS = ",уеишщксдзц;„ьяаожгтнвмчюйъэфхпрлб" + 'ыУЕИШЩКСДЗЦ§“ѝЯАОЖГТНВМЧЮЙЪЭФХПРЛБ';
+keyboard.CYRILIC_KEYBOARD_PHONETIC_TRADITIONAL = "явертъуиопшщюасдфгхйкл;'зьцжбн,./" + 'ЯВЕРТЪУИОПШЩЮАСДФГХЙКЛ:"ЗѝЦЖБНМ<>?'
+keyboard.selectedCyrilicKeyboard;
+
+function setLayout(){
+	return function(storage){
+		console.log(keyboard.selectedCyrilicKeyboard) ; 
+		keyboard.selectedCyrilicKeyboard = keyboard[storage.cyrilicLayoutUsed];
+		console.log(keyboard.selectedCyrilicKeyboard) ;
+	}
+}
+chrome.storage.sync.get({
+    		'cyrilicLayoutUsed': 'CYRILIC_KEYBOARD_PHONETIC_NEW'
+  		}, setLayout() 
+  	);
+/**
+*
+*/
+function latinToCyrilic2(request, sendResponse){
+	function continuelatinToCyrilic(storage){
+		console.log(keyboard.selectedCyrilicKeyboard) ; 
+		keyboard.selectedCyrilicKeyboard = keyboard[storage.cyrilicLayoutUsed];
+		console.log(keyboard.selectedCyrilicKeyboard) ;
+
+        var transliterate = request.word.split('').map( function (char) {
+													var index = keyboard.LATIN_KEYBOARD.indexOf(char);
+        											return keyboard.selectedCyrilicKeyboard.charAt(index);
+    											} ).join('');
+
+        var transliterateIndex = rechko.indexOf( transliterate );
+	 	if (transliterateIndex != -1)
+		    swagger.word.getDefinitions(
+		    	{
+		    		word: request.word,
+		    		limit:1,
+		    		sourceDictionaries:'all'
+		    	},
+		    	{
+		    		responseContentType: 'application/json'
+		    	},
+    			function (response) {
+	  				if (response.obj.length === 0)
+			      		sendResponse(
+			      		{
+				        	result: 'match',
+				        	word: transliterate,
+				        	original: request.word,
+				        	cursor: request.cursor
+		    			});
+				}
+		    );    
+		
+	}
+
+	chrome.storage.sync.get({
+    		'cyrilicLayoutUsed': 'CYRILIC_KEYBOARD_PHONETIC_NEW'
+  		}, continuelatinToCyrilic 
+  	);
+}
 /**
 * Converts word from Latin keyboard layout to Cyrilic keyboard layout.
 * @memberof Background
@@ -85,7 +150,7 @@ var CYRILIC_KEYBOARD = "ючшертъуиопящьасдфгхйкл;'зжцв
 * @returns {string} Word converted to Cyrilic keyboard layout
 */
 function latinToCyrilic(word) {
-    return word.split('').map(function (char) {
+    return word.split('').map( function (char) {
         var index = LATIN_KEYBOARD.indexOf(char);
         return CYRILIC_KEYBOARD.charAt(index);
     } ).join('');
@@ -105,64 +170,43 @@ function cyrilictToLatin(word) {
     } ).join('');
 }
 
-chrome.runtime.onMessage.addListener(
-	function (request, sender, sendResponse) {
-		if (request.message == 'isWordnikLoaded')
-			sendResponse({
-				wordnikLoaded : wordnikLoaded
-			});
-		else if (request.message == 'correctWord') {
-			switch (getAlphabet( request.word )) {
-				case keyboardLayout.LATIN :
-					var transliterate = latinToCyrilic
-				( request.word );
-					var transliterateIndex = rechko.indexOf( transliterate );
-				 	if (transliterateIndex != -1)
-					    swagger.word.getDefinitions(
-					    	{
-					    		word:request.word,
-					    		limit:1,
-					    		sourceDictionaries:'all'
-					    	},
-					    	{
-					    		responseContentType: 'application/json'
-					    	},
-			    			function (response) {
-				  				if (response.obj.length === 0)
-						      		sendResponse(
-						      		{
-							        	result: 'match',
-							        	word: transliterate,
-							        	original: request.word
-					    			});
-							}
-					    );    
-					break;	
-				case keyboardLayout.CYRILIC :
-				 	if (rechko.indexOf( request.word ) == -1) {
-				 		transliterate = cyrilictToLatin( request.word );
-					    swagger.word.getDefinitions(
-					    	{
-					    		word:transliterate,
-					    		limit:1,
-					    		sourceDictionaries:'all'
-					    	},
-					    	{
-					    		responseContentType: 'application/json'
-					    	},
-					    	function(response) {
-				  				if (response.obj.length > 0)
-						      		sendResponse({
-							        	result: 'match',
-							        	word: transliterate,
-							        	original: request.word
-					    			});
-							}
-						);
-					}
-					break;
+function processInput (request, sender, sendResponse) {
+	if (request.message == 'isWordnikLoaded')
+		sendResponse({
+			wordnikLoaded : wordnikLoaded
+		});
+	else if (request.message == 'correctWord') {
+		switch (getAlphabet( request.word )) {
+			case keyboardLayout.LATIN :
+				latinToCyrilic2( request, sendResponse);				
+				break;	
+			case keyboardLayout.CYRILIC :
+			 	if (rechko.indexOf( request.word ) == -1) {
+			 		transliterate = cyrilictToLatin( request.word );
+				    swagger.word.getDefinitions(
+				    	{
+				    		word:transliterate,
+				    		limit:1,
+				    		sourceDictionaries:'all'
+				    	},
+				    	{
+				    		responseContentType: 'application/json'
+				    	},
+				    	function(response) {
+			  				if (response.obj.length > 0)
+					      		sendResponse({
+						        	result: 'match',
+						        	word: transliterate,
+						        	original: request.word,
+				        			cursor: request.cursor
+				    			});
+						}
+					);
 				}
-			return true;
-		}
-	}        
-);
+				break;
+			}
+		return true;
+	}
+}    
+
+chrome.runtime.onMessage.addListener( processInput );

@@ -16,20 +16,18 @@
       "all_frames": true
     }
   ],
-   "omnibox": { "keyword" : " " },  
   "permissions": [
     "activeTab",
     "background",
     "tabs",
-    "<all_urls>"
+    "<all_urls>",
+    "storage"
   ],
-
-  "commands": {
-      "undo_transliteration": {
-        "suggested_key": {
-          "default": "Ctrl+Shift+Space"
-        },
-        "description": "Toggle feature foo"
-      }
-  }
+  "options_ui": {
+    "page": "options.html",
+    "chrome_style": true
+  },
+  "icons": { 
+           "48": "icon48.png",
+          "128": "icon128.png" }
 }

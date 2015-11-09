@@ -105,7 +105,7 @@ dnevnikInput = function(input,result){
 * @function
 */
 dnevnikInputUndo = function(){
-  setupAndInput('koza','коза');
+  setupAndInput('[goda qerewa','ягода череша');
   
   //Undo
   searchBox.sendKeys(webdriver.Key.CONTROL,' ').then(function(title) {
@@ -114,7 +114,7 @@ dnevnikInputUndo = function(){
         var words = value.split(" ");
         var wordCount = words.length;
         var word = words[wordCount - 2];
-        assert.equal(word, 'koza');        
+        assert.equal(word, 'qerewa');        
       console.log("value is:" + word);
     });
   });
