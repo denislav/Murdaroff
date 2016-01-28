@@ -1,7 +1,7 @@
 // 'use strict';
 
 /**
-* The background page of the Chrome extension.
+* The content scripte of the Chrome extension.
 * @namespace ContentScript
 */
 

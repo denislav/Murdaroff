@@ -4,7 +4,7 @@ var client = require('swagger-client');
 var rechko = require('../res/bgDictionary');
 
 /**
-* The background page of the Chrome extension.
+* background.js of the Chrome extension.
 * @namespace Background
 */
 
@@ -17,6 +17,19 @@ var keyboardLayout = {
     LATIN:0,
     CYRILIC:1
 };
+
+/**
+* Open options page after installation of the extension
+* @memberof Background
+*/
+function install_notice() {
+    if (localStorage.getItem('install_time'))
+        return;
+
+    localStorage.setItem('install_time', new Date().getTime());
+    chrome.tabs.create({url: "options.html"});
+}
+install_notice();
 
 /**
 * Flag indicating if connection to Wordnik is set up and ready to transmitting requests.
@@ -85,12 +98,14 @@ keyboard.LATIN_KEYBOARD = "`qwertyuiop[]\\asdfghjkl;'zxcvbnm,./" + 'QWERTYUIOP{}
 keyboard.CYRILIC_KEYBOARD_PHONETIC_NEW = "ючшертъуиопящьасдфгхйкл;'зжцвбнм,./" + 'ЮЧШЕРТЪУИОПЯЩѝАСДФГХЙКЛ:"ЗЖЦВБНМ„“?';
 keyboard.CYRILIC_KEYBOARD_BDS = ",уеишщксдзц;„ьяаожгтнвмчюйъэфхпрлб" + 'ыУЕИШЩКСДЗЦ§“ѝЯАОЖГТНВМЧЮЙЪЭФХПРЛБ';
 keyboard.CYRILIC_KEYBOARD_PHONETIC_TRADITIONAL = "явертъуиопшщюасдфгхйкл;'зьцжбн,./" + 'ЯВЕРТЪУИОПШЩЮАСДФГХЙКЛ:"ЗѝЦЖБНМ<>?'
-keyboard.selectedCyrilicKeyboard;
+keyboard.selectedCyrilicKeyboard = keyboard.CYRILIC_KEYBOARD_PHONETIC_NEW;
 
 function setLayout(){
 	return function(storage){
+		console.log(storage.cyrilicLayoutUsed) ; 
 		console.log(keyboard.selectedCyrilicKeyboard) ; 
-		keyboard.selectedCyrilicKeyboard = keyboard[storage.cyrilicLayoutUsed];
+		if (setLayout.cyrilicLayoutUsed)
+			keyboard.selectedCyrilicKeyboard = keyboard[storage.cyrilicLayoutUsed];
 		console.log(keyboard.selectedCyrilicKeyboard) ;
 	}
 }
@@ -98,6 +113,8 @@ chrome.storage.sync.get({
     		'cyrilicLayoutUsed': 'CYRILIC_KEYBOARD_PHONETIC_NEW'
   		}, setLayout() 
   	);
+
+
 /**
 *
 */
@@ -107,10 +124,75 @@ function latinToCyrilic2(request, sendResponse){
 		keyboard.selectedCyrilicKeyboard = keyboard[storage.cyrilicLayoutUsed];
 		console.log(keyboard.selectedCyrilicKeyboard) ;
 
-        var transliterate = request.word.split('').map( function (char) {
-													var index = keyboard.LATIN_KEYBOARD.indexOf(char);
-        											return keyboard.selectedCyrilicKeyboard.charAt(index);
-    											} ).join('');
+        var transliterated = transliterate(request.word, keyboard.LATIN_KEYBOARD, keyboard.selectedCyrilicKeyboard);
+
+        var transliteratedIndex = rechko.indexOf( transliterated );
+	 	if (transliteratedIndex != -1)
+		    swagger.word.getDefinitions(
+		    	{
+		    		word: request.word,
+		    		limit:1,
+		    		sourceDictionaries:'all'
+		    	},
+		    	{
+		    		responseContentType: 'application/json'
+		    	},
+    			function (response) {
+	  				if (response.obj.length === 0)
+			      		sendResponse(
+			      		{
+				        	result: 'match',
+				        	word: transliterated,
+				        	original: request.word,
+				        	cursor: request.cursor
+		    			});
+				}
+		    );    
+		
+	}
+
+	chrome.storage.sync.get({
+    		'cyrilicLayoutUsed': 'CYRILIC_KEYBOARD_PHONETIC_NEW'
+  		}, continuelatinToCyrilic 
+  	);
+}
+
+/**
+*
+*/
+function transliterate(word, fromKeyboard, toKeyboard){
+	return word.split('')
+			.map( function (char) {
+				var index = fromKeyboard.indexOf(char);
+				return toKeyboard.charAt(index);
+    		} )
+    		.join('');
+}
+
+
+/**
+* Converts word from Latin keyboard layout to Cyrilic keyboard layout.
+* @memberof Background
+* @function
+* @param {string} word - Input word in Latin
+* @returns {string} Word converted to Cyrilic keyboard layout
+*/
+function latinToCyrilic(word) {
+    return word.split('').map( function (char) {
+        var index = LATIN_KEYBOARD.indexOf(char);
+        return CYRILIC_KEYBOARD.charAt(index);
+    } ).join('');
+}
+
+
+/**
+*
+*/
+function transliterate(fromKeyboard, toKeyboard, request, sendResponse){
+	function continueTransliteration(storage){
+		keyboard.selectedCyrilicKeyboard = keyboard[storage.cyrilicLayoutUsed];
+
+        var transliterate = transliterate(request.word, fromKeyboard, toKeyboard);
 
         var transliterateIndex = rechko.indexOf( transliterate );
 	 	if (transliterateIndex != -1)
@@ -139,21 +221,8 @@ function latinToCyrilic2(request, sendResponse){
 
 	chrome.storage.sync.get({
     		'cyrilicLayoutUsed': 'CYRILIC_KEYBOARD_PHONETIC_NEW'
-  		}, continuelatinToCyrilic 
+  		}, continueTransliteration 
   	);
-}
-/**
-* Converts word from Latin keyboard layout to Cyrilic keyboard layout.
-* @memberof Background
-* @function
-* @param {string} word - Input word in Latin
-* @returns {string} Word converted to Cyrilic keyboard layout
-*/
-function latinToCyrilic(word) {
-    return word.split('').map( function (char) {
-        var index = LATIN_KEYBOARD.indexOf(char);
-        return CYRILIC_KEYBOARD.charAt(index);
-    } ).join('');
 }
 
 /**
@@ -163,6 +232,12 @@ function latinToCyrilic(word) {
 * @param {string} word - Input word in Cyrilic
 * @returns {string} Word converted to Latin keyboard layout
 */
+function cyrilictToLatin2(word) {
+    return word.split('').map(function (char) {
+        var index = CYRILIC_KEYBOARD.indexOf(char);
+        return LATIN_KEYBOARD.charAt(index);
+    } ).join('');
+}
 function cyrilictToLatin(word) {
     return word.split('').map(function (char) {
         var index = CYRILIC_KEYBOARD.indexOf(char);
