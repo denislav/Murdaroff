@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
   "name": "prof. Vladko Murdaroff",
-  "version": "1.0",
+  "version": "0.1",
   "author": "Denislav Savkov",
-  "description": "This extension autocorrects bulgarian words written with latin alphabet to cyrilic or english words written in cyrilic alphabet to latin. The extension is named after prof.Vladko Mudaroff, a famous expert in bulgarian language and host of TV show 'Ezik moy'(Language mine) on Bulgarian National Television.",
+  "description": "This extension autocorrects bulgarian words written on english keyboard to cyrilic alphabet or english words written on cyrilic keyboard to english alphabet. The extension is named after prof.Vladko Mudaroff, a famous expert in bulgarian language and host of TV show 'Ezik moy'(Language mine) on Bulgarian National Television.",
   
   "background": {
     "scripts": [ "background.js" ]

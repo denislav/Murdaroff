@@ -9,61 +9,27 @@ var rechko = require('../res/bgDictionary');
 */
 
 /**
-* Supported keyboard layouts
-* @memberof Background
-* @enum
-*/
-var keyboardLayout = {
-    LATIN:0,
-    CYRILIC:1
-};
-
-/**
 * Open options page after installation of the extension
 * @memberof Background
 */
-function install_notice() {
+function installNotice() {
     if (localStorage.getItem('install_time'))
         return;
 
     localStorage.setItem('install_time', new Date().getTime());
     chrome.tabs.create({url: "options.html"});
 }
-install_notice();
+installNotice();
 
 /**
-* Flag indicating if connection to Wordnik is set up and ready to transmitting requests.
+* Supported keyboard layouts
 * @memberof Background
-* @member 
-* @type {boolean}
+* @enum
 */
-var wordnikLoaded = false;
-var swagger = new client({
-	url: 'http://api.wordnik.com:80/v4/word.json',
-	success: function() {
-    		swagger.word.getDefinitions({word:'carses', limit:1, sourceDictionaries:'all'},{responseContentType: 'application/json'},function(response){
-    		console.log(response.obj[0]===undefined? "carses doesn't exist" : response.obj[0].word + ' exists ' ); // + response.obj.searchResults[0].count + ' times in the repository');
-      		console.log('=== response ===');
-      		wordnikLoaded = true;
-			chrome.tabs.query({}, function(tabs){
-				for (var i = 0; i < tabs.length; i++) {				 
-				 	chrome.tabs.sendMessage(
-				    	tabs[i].id,
-				    	{	
-				    		wordnikLoaded : wordnikLoaded
-				    	},
-						logWordnikLoad		    	
-			    	);  
-				}			    
-			});
-    });
-  }
-});
-swagger.clientAuthorizations.add('apiKey', new client.ApiKeyAuthorization('api_key','eddc3027033322a3a96080687ee0d8fab8ba52dca55e97dae','query'));
-function logWordnikLoad(response) {
-	console.log('wordnik loaded aknowledged');
-}
-
+var keyboardLayout = {
+    LATIN: 0,
+    CYRILIC: 1
+};
 /**
 * Decides which is the keyboard layout of the input text.
 * @memberof Background
@@ -78,35 +44,57 @@ function getAlphabet(word) {
 }
 
 /**
-* Represents Latin keyboard layout as a string array.
+* Flag indicating if connection to Wordnik is set up and ready to transmitting requests.
 * @memberof Background
-* @const
+* @member 
+* @type {boolean}
 */
-var LATIN_KEYBOARD = "`qwertyuiop[]\\asdfghjkl;'zxcvbnm,./" + 'QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?';
-/**
-* Represents Cyrilic keyboard layout as a string array.
-* @memberof Background
-* @const
-*/
-var keyboard = {};
-var CYRILIC_KEYBOARD_PHONETIC_NEW = "ючшертъуиопящьасдфгхйкл;'зжцвбнм,./" + 'ЮЧШЕРТЪУИОПЯЩѝАСДФГХЙКЛ:"ЗЖЦВБНМ„“?';
-var CYRILIC_KEYBOARD_BDS = ",уеишщксдзц;„ьяаожгтнвмчюйъэфхпрлб" + 'ыУЕИШЩКСДЗЦ§“ѝЯАОЖГТНВМЧЮЙЪЭФХПРЛБ';
-var CYRILIC_KEYBOARD_PHONETIC_TRADITIONAL = "явертъуиопшщюасдфгхйкл;'зьцжбн,./" + 'ЯВЕРТЪУИОПШЩЮАСДФГХЙКЛ:"ЗѝЦЖБНМ<>?'
-var CYRILIC_KEYBOARD;
+var isWordnikLoaded = false;
+var swagger = new client({
+	url: 'http://api.wordnik.com:80/v4/word.json',
+	success: function() {
+				swagger.word.getDefinitions({word:'carses', limit:1, sourceDictionaries:'all'},{responseContentType: 'application/json'}, wordnikLoaded );
+			}
+});
+function wordnikLoaded(response){
+	console.log(response.obj[0]===undefined? "carses doesn't exist" : response.obj[0].word + ' exists ' ); 
+		console.log('=== response ===');
+		isWordnikLoaded = true;
+	chrome.tabs.query({}, function(tabs){
+		for (var i = 0; i < tabs.length; i++) {				 
+		 	chrome.tabs.sendMessage(
+		    	tabs[i].id,
+		    	{	
+		    		isWordnikLoaded : isWordnikLoaded
+		    	},
+				logWordnikLoad		    	
+	    	);  
+		}			    
+	});
+}
+function logWordnikLoad(response) {
+	console.log('wordnik loaded aknowledged');
+}
+swagger.clientAuthorizations.add('apiKey', new client.ApiKeyAuthorization('api_key','eddc3027033322a3a96080687ee0d8fab8ba52dca55e97dae','query'));
 
-keyboard.LATIN_KEYBOARD = "`qwertyuiop[]\\asdfghjkl;'zxcvbnm,./" + 'QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?';
-keyboard.CYRILIC_KEYBOARD_PHONETIC_NEW = "ючшертъуиопящьасдфгхйкл;'зжцвбнм,./" + 'ЮЧШЕРТЪУИОПЯЩѝАСДФГХЙКЛ:"ЗЖЦВБНМ„“?';
-keyboard.CYRILIC_KEYBOARD_BDS = ",уеишщксдзц;„ьяаожгтнвмчюйъэфхпрлб" + 'ыУЕИШЩКСДЗЦ§“ѝЯАОЖГТНВМЧЮЙЪЭФХПРЛБ';
-keyboard.CYRILIC_KEYBOARD_PHONETIC_TRADITIONAL = "явертъуиопшщюасдфгхйкл;'зьцжбн,./" + 'ЯВЕРТЪУИОПШЩЮАСДФГХЙКЛ:"ЗѝЦЖБНМ<>?'
+
+/**
+* Contains the keyboard layouts represented as a string of characters in the order of qwerty keyboard. One character maps to the others with the same position in the other strings.
+* @memberof Background
+* @const
+*/
+var keyboard = {
+	LATIN_KEYBOARD : "`qwertyuiop[]\\asdfghjkl;'zxcvbnm,./" + 'QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?',
+	CYRILIC_KEYBOARD_PHONETIC_NEW : "ючшертъуиопящьасдфгхйкл;'зжцвбнм,./" + 'ЮЧШЕРТЪУИОПЯЩѝАСДФГХЙКЛ:"ЗЖЦВБНМ„“?',
+	CYRILIC_KEYBOARD_BDS : ",уеишщксдзц;„ьяаожгтнвмчюйъэфхпрлб" + 'ыУЕИШЩКСДЗЦ§“ѝЯАОЖГТНВМЧЮЙЪЭФХПРЛБ',
+	CYRILIC_KEYBOARD_PHONETIC_TRADITIONAL : "явертъуиопшщюасдфгхйкл;'зьцжбн,./" + 'ЯВЕРТЪУИОПШЩЮАСДФГХЙКЛ:"ЗѝЦЖБНМ<>?',
+};
 keyboard.selectedCyrilicKeyboard = keyboard.CYRILIC_KEYBOARD_PHONETIC_NEW;
 
 function setLayout(){
 	return function(storage){
-		console.log(storage.cyrilicLayoutUsed) ; 
-		console.log(keyboard.selectedCyrilicKeyboard) ; 
 		if (setLayout.cyrilicLayoutUsed)
 			keyboard.selectedCyrilicKeyboard = keyboard[storage.cyrilicLayoutUsed];
-		console.log(keyboard.selectedCyrilicKeyboard) ;
 	}
 }
 chrome.storage.sync.get({
@@ -114,174 +102,91 @@ chrome.storage.sync.get({
   		}, setLayout() 
   	);
 
-
 /**
-*
+* Converts a word from one keyboard layout to anothe keyboard layout.
+* @memberof Background
+* @function
+* @param {string} word - Input word
+* @param {string} fromKeyboard - Keyboard layout in which the word is written
+* @param {string} toKeyboard - Keyboard layout in which to transliterate the word
+* @returns {string} Transliterated word
 */
-function latinToCyrilic2(request, sendResponse){
-	function continuelatinToCyrilic(storage){
-		console.log(keyboard.selectedCyrilicKeyboard) ; 
-		keyboard.selectedCyrilicKeyboard = keyboard[storage.cyrilicLayoutUsed];
-		console.log(keyboard.selectedCyrilicKeyboard) ;
-
-        var transliterated = transliterate(request.word, keyboard.LATIN_KEYBOARD, keyboard.selectedCyrilicKeyboard);
-
-        var transliteratedIndex = rechko.indexOf( transliterated );
-	 	if (transliteratedIndex != -1)
-		    swagger.word.getDefinitions(
-		    	{
-		    		word: request.word,
-		    		limit:1,
-		    		sourceDictionaries:'all'
-		    	},
-		    	{
-		    		responseContentType: 'application/json'
-		    	},
-    			function (response) {
-	  				if (response.obj.length === 0)
-			      		sendResponse(
-			      		{
-				        	result: 'match',
-				        	word: transliterated,
-				        	original: request.word,
-				        	cursor: request.cursor
-		    			});
-				}
-		    );    
-		
-	}
-
-	chrome.storage.sync.get({
-    		'cyrilicLayoutUsed': 'CYRILIC_KEYBOARD_PHONETIC_NEW'
-  		}, continuelatinToCyrilic 
-  	);
-}
-
-/**
-*
-*/
-function transliterate(word, fromKeyboard, toKeyboard){
-	return word.split('')
+keyboard.transliterate = function (word, fromKeyboard, toKeyboard){
+		return word.split('')
 			.map( function (char) {
 				var index = fromKeyboard.indexOf(char);
 				return toKeyboard.charAt(index);
     		} )
     		.join('');
-}
-
-
-/**
-* Converts word from Latin keyboard layout to Cyrilic keyboard layout.
-* @memberof Background
-* @function
-* @param {string} word - Input word in Latin
-* @returns {string} Word converted to Cyrilic keyboard layout
-*/
-function latinToCyrilic(word) {
-    return word.split('').map( function (char) {
-        var index = LATIN_KEYBOARD.indexOf(char);
-        return CYRILIC_KEYBOARD.charAt(index);
-    } ).join('');
-}
-
+	}	
 
 /**
 *
 */
-function transliterate(fromKeyboard, toKeyboard, request, sendResponse){
-	function continueTransliteration(storage){
-		keyboard.selectedCyrilicKeyboard = keyboard[storage.cyrilicLayoutUsed];
-
-        var transliterate = transliterate(request.word, fromKeyboard, toKeyboard);
-
-        var transliterateIndex = rechko.indexOf( transliterate );
-	 	if (transliterateIndex != -1)
-		    swagger.word.getDefinitions(
-		    	{
-		    		word: request.word,
-		    		limit:1,
-		    		sourceDictionaries:'all'
-		    	},
-		    	{
-		    		responseContentType: 'application/json'
-		    	},
-    			function (response) {
-	  				if (response.obj.length === 0)
-			      		sendResponse(
-			      		{
-				        	result: 'match',
-				        	word: transliterate,
-				        	original: request.word,
-				        	cursor: request.cursor
-		    			});
-				}
-		    );    
-		
+// function transliterate(fromKeyboard, toKeyboard, request, sendResponse){
+function transliterate(request, sendResponse){
+	// function continueTransliteration(storage){
+	function getTransliterationDirection(request){
+		switch( getAlphabet( request.word )){
+				case keyboardLayout.LATIN :
+					return {fromKeyboard: keyboard.LATIN_KEYBOARD, toKeyboard: keyboard.selectedCyrilicKeyboard }
+					break;	
+				case keyboardLayout.CYRILIC :
+					return {fromKeyboard:  keyboard.selectedCyrilicKeyboard , toKeyboard: keyboard.LATIN_KEYBOARD }
+					break;
+		}
 	}
+	var direction = getTransliterationDirection(request);
+    var transliterate = keyboard.transliterate(request.word, direction.fromKeyboard, direction.toKeyboard);
 
-	chrome.storage.sync.get({
-    		'cyrilicLayoutUsed': 'CYRILIC_KEYBOARD_PHONETIC_NEW'
-  		}, continueTransliteration 
-  	);
-}
-
-/**
-* Converts word from Cyrilic keyboard layout to Latin keyboard layout.
-* @memberof Background
-* @function
-* @param {string} word - Input word in Cyrilic
-* @returns {string} Word converted to Latin keyboard layout
-*/
-function cyrilictToLatin2(word) {
-    return word.split('').map(function (char) {
-        var index = CYRILIC_KEYBOARD.indexOf(char);
-        return LATIN_KEYBOARD.charAt(index);
-    } ).join('');
-}
-function cyrilictToLatin(word) {
-    return word.split('').map(function (char) {
-        var index = CYRILIC_KEYBOARD.indexOf(char);
-        return LATIN_KEYBOARD.charAt(index);
-    } ).join('');
-}
-
-function processInput (request, sender, sendResponse) {
-	if (request.message == 'isWordnikLoaded')
-		sendResponse({
-			wordnikLoaded : wordnikLoaded
-		});
-	else if (request.message == 'correctWord') {
-		switch (getAlphabet( request.word )) {
-			case keyboardLayout.LATIN :
-				latinToCyrilic2( request, sendResponse);				
-				break;	
-			case keyboardLayout.CYRILIC :
-			 	if (rechko.indexOf( request.word ) == -1) {
-			 		transliterate = cyrilictToLatin( request.word );
-				    swagger.word.getDefinitions(
-				    	{
-				    		word:transliterate,
-				    		limit:1,
-				    		sourceDictionaries:'all'
-				    	},
-				    	{
-				    		responseContentType: 'application/json'
-				    	},
-				    	function(response) {
-			  				if (response.obj.length > 0)
-					      		sendResponse({
-						        	result: 'match',
-						        	word: transliterate,
-						        	original: request.word,
-				        			cursor: request.cursor
-				    			});
-						}
-					);
-				}
+	function findInDictionary(dictionary, word, callback){
+		switch (dictionary) {
+			case keyboard.LATIN_KEYBOARD:
+				swagger.word.getDefinitions(
+			    	{
+			    		word: word,
+			    		limit: 1,
+			    		sourceDictionaries:'all'
+			    	},
+			    	{
+			    		responseContentType: 'application/json'
+			    	},
+	    			function (response) {
+	    				callback( response.obj.length > 0 )
+					}
+		    	);    
 				break;
-			}
-		return true;
+			default :
+				callback( rechko.indexOf( transliterate ) != -1 )
+		}
+	}	
+	function decideResponse(inputCorrect, transliterationCorrect){
+		var match = ( (!inputCorrect) & transliterationCorrect) ? 'match' : 'no match';			
+		sendResponse({
+			        	result: match,
+			        	word: transliterate,
+			        	original: request.word,
+			        	cursor: request.cursor
+		});	
 	}
-}    
+	findInDictionary(direction.fromKeyboard, request.word, function(inputCorrect){
+		findInDictionary(direction.toKeyboard, transliterate, function(transliterationCorrect){
+			decideResponse(inputCorrect,transliterationCorrect);
+		} );
+	});
+}
 
-chrome.runtime.onMessage.addListener( processInput );
+function  processInput(request, sender, sendResponse) {
+	switch(request.message) {
+		case 'isWordnikLoaded':
+			sendResponse({
+				isWordnikLoaded : isWordnikLoaded
+			});
+			break;
+		case 'correctWord':
+			transliterate( request, sendResponse );
+			break;
+	}
+	return true;
+}   
+chrome.runtime.onMessage.addListener( 	processInput );

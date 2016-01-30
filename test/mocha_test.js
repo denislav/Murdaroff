@@ -94,7 +94,7 @@ setupAndInput = function(input,result){
 * @memberof TestSuite
 * @function
 */
-dnevnikInput = function(input,result){
+testDnevnikInput = function(input,result){
   setupAndInput(input,result);
   driver.quit();    
 }
@@ -104,7 +104,7 @@ dnevnikInput = function(input,result){
 * @memberof TestSuite
 * @function
 */
-dnevnikInputUndo = function(){
+testDnevnikInputUndo = function(){
   setupAndInput('[goda qerewa','ягода череша');
   
   //Undo
@@ -126,23 +126,23 @@ test.describe('Dnevnik.bg search', function() {
   this.timeout( startupDelay + wordnikDelay + transliterationDelay );
   
   test.it('should transliterate LAT->BG keyboard layout', function() {
-    dnevnikInput('koza','коза');
+    testDnevnikInput('koza','коза');
   });
   
   test.it('should transliterate BG->LAT keyboard layout', function() {
-    dnevnikInput('цлотх','cloth');
+    testDnevnikInput('цлотх','cloth');
   });
 
   test.it('should not transliterate BG->LAT when word is in both', function() {
-     dnevnikInput('цар','цар'); 
+     testDnevnikInput('цар','цар'); 
   });
 
   test.it('should not transliterate LAT->BG when word is in both', function() {
-     dnevnikInput('car','car'); 
+     testDnevnikInput('car','car'); 
   });
 
   test.it('should undo transliteration if Ctrl+Space are pressed', function() {
-     dnevnikInputUndo(); 
+     testDnevnikInputUndo(); 
   });
 
 });

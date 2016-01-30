@@ -25,21 +25,21 @@
 * @type {boolean}
 
 */
-var wordnikLoaded = false;
+var isWordnikLoaded = false;
 
 /**
 * Updates the state of the connection with Wordnik. If connection is established
-* a <meta> tag wordnikLoaded is appended to the page header so this can be used by
+* a <meta> tag isWordnikLoaded is appended to the page header so this can be used by
 * automated testing scripts as notification to proceed with the test.
 * Also the local flag with the state is maintaned in content script.
 * @memberof ContentScript
 * @function
 */
 function updateState(state){
-    wordnikLoaded = state;
-    if ( wordnikLoaded === true ){
+    isWordnikLoaded = state;
+    if ( isWordnikLoaded === true ){
         var newMeta = document.createElement('meta');
-        newMeta.setAttribute('name','wordnikLoaded');
+        newMeta.setAttribute('name','isWordnikLoaded');
         document.head.appendChild(newMeta);
     }
 }
@@ -49,13 +49,13 @@ chrome.runtime.sendMessage(
         message: 'isWordnikLoaded'
     },
     function (response) {
-        updateState(response.wordnikLoaded);
+        updateState(response.isWordnikLoaded);
     }
 );
 
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
-        updateState(request.wordnikLoaded);
+        updateState(request.isWordnikLoaded);
     }
 );
 
@@ -75,14 +75,16 @@ var undoAllowed = false;
 * @function
 */
 function vladko(response,element) {
-    element.original = element.value;
-    // var wordsBefore = element.value.substr(0, response.cursor).split(' ');
-    // var lastWord = wordsBefore[wordsBefore.length - 2];
-    element.value = element.value.slice(0, response.cursor - response.word.length) + response.word + element.value.slice(response.cursor,element.value.length)  ;
-    // element.value = element.value.replace(new RegExp(response.original, 'g'), response.word);//element.value.replace(response.original, response.word);    
-    element.selectionStart = response.cursor+1;
-    element.selectionEnd = response.cursor+1;
-    undoAllowed = true ;
+    if (response.result == 'match'){
+        element.original = element.value;
+        // var wordsBefore = element.value.substr(0, response.cursor).split(' ');
+        // var lastWord = wordsBefore[wordsBefore.length - 2];
+        element.value = element.value.slice(0, response.cursor - response.word.length) + response.word + element.value.slice(response.cursor,element.value.length)  ;
+        // element.value = element.value.replace(new RegExp(response.original, 'g'), response.word);//element.value.replace(response.original, response.word);    
+        element.selectionStart = response.cursor+1;
+        element.selectionEnd = response.cursor+1;
+        undoAllowed = true ;
+    }
 }
 
 
@@ -114,7 +116,7 @@ function onSpace(event, element) {
             // var word2 = words[last - 1];
             var wordsBefore = element.value.substr(0, element.selectionStart).split(' ');
             var lastWord = wordsBefore[wordsBefore.length - 1];
-            if (wordnikLoaded === true){
+            if (isWordnikLoaded === true){
                 chrome.runtime.sendMessage(
                     {
                         message: 'correctWord',
