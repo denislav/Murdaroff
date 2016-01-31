@@ -1,9 +1,9 @@
 // 'use strict';
 
 /**
-* The content scripte of the Chrome extension.
-* @namespace ContentScript
-*/
+ * The content scripte of the Chrome extension.
+ * @namespace ContentScript
+ */
 
 /**
 * TO DO
@@ -19,158 +19,150 @@
 */
 
 /**
-* Flag indicating if connection to Wordnik is set up and ready to transmitting requests.
-* @memberof ContentScript
-* @member 
-* @type {boolean}
-
-*/
+ * Flag indicating if connection to Wordnik is set up and ready to transmitting requests.
+ * @memberof ContentScript
+ * @member 
+ * @type {boolean}
+ 
+ */
 var isWordnikLoaded = false;
 
 /**
-* Updates the state of the connection with Wordnik. If connection is established
-* a <meta> tag isWordnikLoaded is appended to the page header so this can be used by
-* automated testing scripts as notification to proceed with the test.
-* Also the local flag with the state is maintaned in content script.
-* @memberof ContentScript
-* @function
-*/
-function updateState(state){
+ * Updates the state of the connection with Wordnik. If connection is established
+ * a <meta> tag isWordnikLoaded is appended to the page header so this can be used by
+ * automated testing scripts as notification to proceed with the test.
+ * Also the local flag with the state is maintaned in content script.
+ * @memberof ContentScript
+ * @function
+ */
+function updateState(state) {
     isWordnikLoaded = state;
-    if ( isWordnikLoaded === true ){
+    if (isWordnikLoaded === true) {
         var newMeta = document.createElement('meta');
-        newMeta.setAttribute('name','isWordnikLoaded');
+        newMeta.setAttribute('name', 'isWordnikLoaded');
         document.head.appendChild(newMeta);
     }
 }
 
-chrome.runtime.sendMessage(
-    {
+chrome.runtime.sendMessage({
         message: 'isWordnikLoaded'
     },
-    function (response) {
+    function(response) {
         updateState(response.isWordnikLoaded);
     }
 );
 
 chrome.runtime.onMessage.addListener(
-    function (request, sender, sendResponse) {
+    function(request, sender, sendResponse) {
         updateState(request.isWordnikLoaded);
     }
 );
 
 
 /**
-* Flag indicating weather undo of last transliterated word is allowed.
-* Undo is allowed only after transliteration has occured.
-* @memberof ContentScript
-* @member 
-* @type {boolean}
-*/
-var undoAllowed = false;
+ * Flag indicating weather undo of last transliterated word is allowed.
+ * Undo is allowed only after transliteration has occured.
+ * @memberof ContentScript
+ * @member 
+ * @type {boolean}
+ */
+var isUndoAllowed = false;
 
 /**
-* Updates the element value to the transliterated word.
-* @memberof ContentScript
-* @function
-*/
-function vladko(response,element) {
-    if (response.result == 'match'){
+ * Updates the element value to the transliterated word.
+ * @memberof ContentScript
+ * @function
+ */
+function vladko(response, element) {
+    if (response.result == 'match') {
         element.original = element.value;
-        // var wordsBefore = element.value.substr(0, response.cursor).split(' ');
-        // var lastWord = wordsBefore[wordsBefore.length - 2];
-        element.value = element.value.slice(0, response.cursor - response.word.length) + response.word + element.value.slice(response.cursor,element.value.length)  ;
-        // element.value = element.value.replace(new RegExp(response.original, 'g'), response.word);//element.value.replace(response.original, response.word);    
+        element.value = element.value.slice(0, response.cursor - response.word.length) + response.word + element.value.slice(response.cursor, element.value.length);
         element.selectionStart = response.cursor+1;
         element.selectionEnd = response.cursor+1;
-        undoAllowed = true ;
+        isUndoAllowed = true;
     }
 }
 
 
-function getPreviousWord(element,cursor){
+function getPreviousWord(element, cursor) {
     var wordsBefore = element.value.substr(0, element.selectionStart).split(' ');
     var lastWord = wordsBefore[wordsBefore.length - 2];
 }
 /**
-* Executed on the event of user input is space bar (" ") 
-* in order to check the input for requred transliteration.
-* @memberof ContentScript
-* @function
-* @param {Object} event The event triggered on the element
-* @param {Object} element The element on which the callback is hooked.
-*/
+ * Executed on the event of user input is space bar (" ") 
+ * in order to check the input for requred transliteration.
+ * @memberof ContentScript
+ * @function
+ * @param {Object} event The event triggered on the element
+ * @param {Object} element The element on which the callback is hooked.
+ */
 function onSpace(event, element) {
     if (event.keyCode == ' '.charCodeAt(0)) {
         if (event.ctrlKey === true) {
-            if (undoAllowed === true) {
+            if (isUndoAllowed === true) {
                 var keepCursor = element.selectionStart;
                 element.value = element.original;
                 element.selectionStart = keepCursor;
                 element.selectionEnd = keepCursor;
-                undoAllowed = false;
+                isUndoAllowed = false;
             }
         } else {
-            // var words = event.currentTarget.value.split(' ');
-            // var last = words.length;
-            // var word2 = words[last - 1];
             var wordsBefore = element.value.substr(0, element.selectionStart).split(' ');
             var lastWord = wordsBefore[wordsBefore.length - 1];
-            if (isWordnikLoaded === true){
-                chrome.runtime.sendMessage(
-                    {
+            if (isWordnikLoaded === true) {
+                chrome.runtime.sendMessage({
                         message: 'correctWord',
                         word: lastWord,
                         cursor: element.selectionStart
                     },
-                    function (response) {
-                        vladko(response,element);
+                    function(response) {
+                        vladko(response, element);
                     }
                 );
             }
         }
     } else
-        undoAllowed = false;
- }
+        isUndoAllowed = false;
+}
 
 /**
-* Factory method which creates the callback function to be executed upon user text input.
-* @memberof ContentScript
-* @function
-* @param {Object} element The element on which the callback is hooked.
-* @returns {function}
-*/
+ * Factory method which creates the callback function to be executed upon user text input.
+ * @memberof ContentScript
+ * @function
+ * @param {Object} element The element on which the callback is hooked.
+ * @returns {function}
+ */
 function vladkoFacto(element) {
-    return function (event) {
-        onSpace(event,element);
+    return function(event) {
+        onSpace(event, element);
     };
 }
 
 /**
-* Collection of input element for which the text input will be transliterated.
-* @memberof ContentScript
-* @type {NodeList}
-*/
- var inputElements = document.getElementsByTagName('input'); // handle <textArea> too
+ * Collection of input element for which the text input will be transliterated.
+ * @memberof ContentScript
+ * @type {NodeList}
+ */
+var inputElements = document.getElementsByTagName('input'); // handle <textArea> too
 
- var inputNumber = inputElements.length;
+var inputNumber = inputElements.length;
 
- for (var i = 0; i < inputNumber; i++) {
-     var input = inputElements[i];
-     var type = input.type;
-     if (type == 'text') {
-         // input.onkeypress = vladkoFacto(input);
-         input.onkeyup = vladkoFacto(input);
-     }
- }
+for (var i = 0; i < inputNumber; i++) {
+    var input = inputElements[i];
+    var type = input.type;
+    if (type == 'text') {
+        // input.onkeypress = vladkoFacto(input);
+        input.onkeyup = vladkoFacto(input);
+    }
+}
 
 document.addEventListener('click', function(event) {
     var input = event.srcElement;
-    if(input.type === 'text' ||
-       input.type === 'textarea' ||
-       input.tagName === 'input' ||
-       input.tagName === 'textarea') {
-            console.log('hooked on', input);
-            input.onkeypress = vladkoFacto(input);
+    if (input.type === 'text' ||
+        input.type === 'textarea' ||
+        input.tagName === 'input' ||
+        input.tagName === 'textarea') {
+        console.log('hooked on', input);
+        input.onkeypress = vladkoFacto(input);
     }
 });

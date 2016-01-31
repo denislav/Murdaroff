@@ -21,13 +21,13 @@ function restore_options() {
   // Use default value color = 'red' and likesColor = true.
   console.log('restore');
   chrome.storage.sync.get({
-    'cyrilicLayoutUsed': 'CYRILIC_KEYBOARD_PHONETIC_NEW'
+    'cyrilicLayoutUsed': 'BULGARIAN_PHONETIC_NEW'
   }, function(items) {
-     console.log(items);
+    console.log(items);
     document.getElementById('cyrilic_layout').value = items.cyrilicLayoutUsed;
   });
 }
 document.addEventListener('DOMContentLoaded', restore_options);
 document.getElementById('save').addEventListener('click',
-    save_options);
+  save_options);
 console.log('options loaded');
