@@ -84,12 +84,7 @@ function getPreviousWord(element, cursor) {
  * @param {Object} element The element on which the callback is hooked.
  */
 function onSpace(event, element) {
-    console.log(event.ctrlKey);
-    console.log(event.shiftKey);
-    console.log(event.keyCode);
-    console.log(event);
     if (event.keyCode === ' '.charCodeAt(0)) {
-        console.log('inside');
         if (event.ctrlKey === true && event.shiftKey === true) {
             if (isUndoAllowed === true) {
                 var keepCursor = element.selectionStart;
@@ -100,7 +95,6 @@ function onSpace(event, element) {
             }
         } else {
             var wordsBefore = element.value.substr(0, element.selectionStart).split(' ');
-            console.log(element.selectionStart);
             var lastWord = wordsBefore[wordsBefore.length - 2];
             if (isWordnikLoaded === true) {
                 chrome.runtime.sendMessage({
