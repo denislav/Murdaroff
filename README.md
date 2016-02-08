@@ -1,8 +1,6 @@
-# Mudar
-prof. Vladko Murdaroff
+# Murdaroff - The Smart Transliterator
 
-Chrome extension for autocorrection of wrong keyboard layout. Fixes the entered word in case the user forgot to switch from English to Bulgarian input method or the other way around.
-
+Chrome extension for autocorrection of input from wrong keyboard layout. Fixes the entered word in case the user forgot to switch from English to Bulgarian input method or the other way around. [Install from Chrome Webstore.](https://chrome.google.com/webstore/detail/murdaroff-the-smart-trans/cgcgjpklfadfjcnnhmochjloidpjaopi?hl=bg&gl=BG)
 
 ## Overview
 
@@ -11,7 +9,7 @@ The extension is trying to check every word that a browser user is typing and co
 The "transliteration" occurs only if the entered word is not present in the language of origin but are present in the other language. The assumption is that words in latin are English words and words in cyrilic are Bulgarian.
 
 Note: 
-# Example
+### Example
 
 "koza" -> "коза" 
 
@@ -20,13 +18,13 @@ or
 "цлотх" -> "cloth"
 
 
-# Undo
+### Undo
 
 User can undo the last transliteration using Ctrl+Space in case Vladko is is wrong or if the user does not want transliteration of the word
 
 "I am ivan" --Space--> "I am иван " --Ctrl+Shift+Space--> "I am ivan "
 
-# Dictionaries
+### Dictionaries
 
 For checking of English words the extension is using Wordnik.com. You can check the API at developer.wordnik.com.
 There is a delay around 30 seconds before connection to Wordnik is established. To tackle this problem, permissions:background is used in manifest.json so connection should be established at computer startup.
@@ -36,42 +34,69 @@ For Bulgarian words there are two sources used to compile a Bulgarian dictionary
 
 ## Installation
 
-After cloning the repository you need to build the extension by running the build Grunt task
+After cloning the repository you need to build the background.js with Browserify by running the build Grunt task
 
-...
+```
 grunt build
-...
+```
 
-Which generates background.js using Browserify.
+Now you can load the (unpacked) extension from the ./src folder.
 
-Load the unpacked extension from the ./src folder.
+### Development 
 
-# Development 
+First you need to be familiar with the structure of a Chrome extension.
 
-First you need to e familiar with the structure of a Chrome extension.
+Background.js = background_origin.js + Swagger + dictionary + build mode
 
-Background.js = background_origin.js + Swagger + dictionary // using Browserify
+Background.js has several sources so it needs to be rebuilt uppon any changes in the sources. There is a automatic task upon file change.
 
-Make changes in background_origin.js then build to update Background.js
-Swagger is used to access Wordnik.
-The bulgarian dictionary is in separate file because is slowing down the IDE/text editor.
+```
+grunt watchBuild
+```
 
-# Tests
+Swagger is used to access Wordnik dictionary service.
+
+The bulgarian dictionary is in separate file because is slowing down the IDE/text editor. 
+
+### Tests
 
 You can execute some automated Selenium-webdriver tests by running the Grunt task
 
-...
+```
 grunt test
-...
+```
+or
+```
+grunt watchTest
+```
+to execute upon save.
 
-See and add more tasks in the ./Grunt.js file. There is also watch tasks to automate execution upon save.
+### Build modes
 
-Note that Wordnik services takes 20-30 seconds to initialize which is not practical for continuous integration tests. A future development task is to make a Wordnik mockup to allow instant tests.
+There are 3 build modes - PRODUCTION, LIVE_TEST and MOCKUP_TEST
 
-# Documentation
+#### MOCKUP_TEST
 
-Currently Grunt jsdoc task is not working. Use command line to generate jsdoc.
+Note that Wordnik services takes 20-30 seconds to initialize which is not practical for TDD. Because of this there is a mockup of Wordnik which is activated by changing the mode value in build.js. Furthermore, in this mode a local test html page is used for fast testing speed.
 
-...
-jsdoc ./src/vladko.js ./src/background_origin.js ./test/mocha_test.js -d ./docs
-...
+#### LIVE_TEST
+
+This is the more realistic test which connects to Wordnik and uses an internet page to test extension.
+
+### Documentation
+
+To generate documentation run the grunt task
+
+```
+grunt doc
+```
+
+## TO DO
+
+Some things that need to be done
+
+* Make reusable asynchronous test methods using Promises to escape current callback hell
+* There is a functional issue in case of fast typing
+* Improve the coding style - many statics are used, update to ECMA6
+* Documentation not covering 100% of code.
+

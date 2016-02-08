@@ -2,62 +2,64 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    webdriver: {
-      //vladko: {
-      options: {
-        desiredCapabilities: {
-          browserName: 'chrome'
-        }
-      },
-      onlineTest:{
-  	    tests: 'test/mocha_test.js'
-      },
-      local:{
-        tests: 'test/local_test.js'
-      }
-      //}
-    },
     watch: {
-      browserify: {            
-          files: ['src/background_origin.js'],
-          tasks: ['browserify']
+      browserify: {
+        files: [
+          'src/background_origin.js',
+          'test/swagger_mockup.js',
+          'src/build.js',
+          'res/bg_dictionary.js'
+        ],
+        tasks: ['browserify']
       },
-      runTest: {
+      buildTest: {
         files: ['src/*.js', 'test/*.js'],
-        tasks: ['test']
+        tasks: ['build', 'test']
       }
     },
-    jsdoc : {
-      dist : {
-        src: ['src/*.js', 'test/*.js','readme.md'],
-        //src: ['src/background_origin.js'],
+    jsdoc: {
+      basic: {
+        src: [
+          'readme.md',
+          'src/background_origin.js',
+          'src/vladko.js',
+          'src/build.js',
+          'test/swagger_mockup.js',
+          'test/mocha_test.js',
+          'res/bg_dictionary.js'
+        ],
         options: {
-          destination: 'docs'
+          destination: 'doc'
         }
       }
     },
-    browserify:{
+    browserify: {
       dist: {
         src: ['src/background_origin.js'],
         dest: 'src/background.js'
       }
+    },
+    mochaTest: {
+      test: {
+        options: {
+          captureFile: 'test/result.log',
+        },
+        src: ['test/mocha_test.js']
+      }
     }
   });
+  grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-selenium-webdriver');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-webdriver');
+  grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-jsdoc');
 
-  grunt.registerTask('devTestVladko', ['webdriver:local']);
-  grunt.registerTask('devTest', ['browserify','webdriver:onlineTest']);
-  grunt.registerTask('devTestOnline', ['browserify','webdriver:onlineTest']);
-  grunt.registerTask('test', ['webdriver:onlineTest']);
 
-  grunt.registerTask('build', ['browserify','jsdoc']);
-  //grunt.registerTask('watchDev', ['watch:dev']);
-  grunt.registerTask('watchBrowserify', ['watch:browserify']);
-  grunt.registerTask('watchTest', ['watch:runTest']);
-  grunt.registerTask('default', ['watch']);
+  grunt.registerTask('build', ['browserify']);
+  grunt.registerTask('watchBuild', ['watch:browserify']);
+  grunt.registerTask('watchTest', ['watch:buildTest']);
+  grunt.registerTask('test', ['mochaTest']);
+  grunt.registerTask('doc', ['jsdoc:basic']);
+  grunt.registerTask('default', ['build', 'test', 'doc']);
 
 };

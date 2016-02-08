@@ -1,37 +1,43 @@
 {
-  "name": "mudar",
-  "version": "1.0.0",
-  "description": "Autocorrection when you forget to switch to the correct keyboard layout",
+  "name": "Murdaroff - The Smart Transliterator",
+  "version": "0.1.0",
+  "description": "Autocorrects your input when you forget to switch to the correct keyboard layout",
   "_main": "vladko.js",
   "_scripts": {
-    "test": "test_all.js"
+    "test": "grunt test"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/denislav/Mudar.git"
   },
   "keywords": [
+    "transliteration",
+    "transliterator",
+    "transliterate",
     "autocorrection",
     "keyboard",
+    "input",
     "language",
     "layout"
   ],
-  "author": "Dejo",
+  "author": "dejo",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/denislav/Mudar/issues"
   },
   "homepage": "https://github.com/denislav/Mudar#readme",
   "devDependencies": {
+    "swagger-client": "^2.1.3",
     "browserify": "^11.1.0",
+    "selenium-webdriver": "^2.46.1",
+    "mocha": "^2.4.5",
+    "jsdoc": "^3.3.2",
     "grunt": "^0.4.5",
-    "grunt-browserify": "^4.0.1",
     "grunt-contrib-watch": "^0.6.1",
-    "grunt-jsdoc": "^0.6.8",
+    "grunt-browserify": "^4.0.1",
     "grunt-selenium-webdriver": "^0.2.451",
     "grunt-webdriver": "^0.5.2",
-    "jsdoc": "^3.3.2",
-    "selenium-webdriver": "^2.46.1",
-    "swagger-client": "^2.1.3"
+    "grunt-mocha-test": "^0.12.7",
+    "grunt-jsdoc": "^0.6.8"
   }
 }
