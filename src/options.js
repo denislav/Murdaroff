@@ -8,7 +8,7 @@ function save_options() {
     // Update status to let user know options were saved.
     var status = document.getElementById('status');
     console.log(status);
-    status.textContent = 'Запомних';
+    status.textContent = 'Р—Р°РїРѕРјРЅРёС…';
     setTimeout(function() {
       status.textContent = '';
     }, 750);
@@ -21,13 +21,13 @@ function restore_options() {
   // Use default value color = 'red' and likesColor = true.
   console.log('restore');
   chrome.storage.sync.get({
-    'cyrilicLayoutUsed': 'BULGARIAN_PHONETIC_NEW'
+    'cyrilicLayoutUsed': 'CYRILIC_KEYBOARD_PHONETIC_NEW'
   }, function(items) {
-    console.log(items);
+     console.log(items);
     document.getElementById('cyrilic_layout').value = items.cyrilicLayoutUsed;
   });
 }
 document.addEventListener('DOMContentLoaded', restore_options);
 document.getElementById('save').addEventListener('click',
-  save_options);
+    save_options);
 console.log('options loaded');
