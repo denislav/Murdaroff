@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Murdaroff - The Smart Transliterator",
   "short_name": "Murdaroff",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "author": "Denislav Savkov",
   "description": "This extension autocorrects as you type Bulgarian and English words written with the incorrect keyboard input method (layout).",
   "background": {

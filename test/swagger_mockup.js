@@ -30,7 +30,7 @@ var SwaggerMockupClient = function(args) {
 		 */
 		this.getDefinitions = function(args, contentType, callback) {
 			console.log('Inside mockup ' + args.word);
-			var words = ['car', 'cloth', 'old', 'tore'];
+			var words = ['car', 'cloth', 'old', 'tore','i','I'];
 			var response = words.indexOf(args.word) === -1 ? {
 				obj: {
 					length: 0

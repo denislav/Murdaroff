@@ -1,4 +1,3 @@
-// 'use strict';
 /**
  * The background page of the Chrome extension.
  * @namespace TestSuite
@@ -116,10 +115,9 @@ testUndo = function(input) {
                 assert.notEqual(transliteration, input);
                 //Undo  
                 searchBox.sendKeys(Key.chord(Key.CONTROL, Key.SHIFT, Key.SPACE)).then(() =>
-                  searchBox.getAttribute('value').then(value => {
-                    console.log(value);
+                  searchBox.getAttribute('value').then(value =>
                     assert.equal(value, input)
-                  })
+                  )
                 )
               })
             )
@@ -143,12 +141,14 @@ testInMiddleOfText = function(initialText, input, result) {
   var goBack = words[words.length - 1].split('').map(c => back).join('');
   driver = startChrome();
   driver.get(testLocation).then(() =>
-    driver.findElement(By.name('stext')).then(searchBox =>
-      searchBox.click().then(() =>
-        searchBox.sendKeys(initialText, goBack, input).then(() =>
-          driver.sleep(transliterationDelay).then(() =>
-            searchBox.getAttribute('value').then(value =>
-              assert.equal(value, result)
+    driver.wait(until.elementsLocated(By.name('wordnikLoaded')), wordnikDelay).then(() =>
+      driver.findElement(By.name('stext')).then(searchBox =>
+        searchBox.click().then(() =>
+          searchBox.sendKeys(initialText, goBack, input).then(() =>
+            driver.sleep(transliterationDelay).then(() =>
+              searchBox.getAttribute('value').then(value =>
+                assert.equal(value, result)
+              )
             )
           )
         )
@@ -177,10 +177,25 @@ test.describe('Dnevnik.bg search', function() {
     testInput('car ', 'car ');
   });
 
+  test.it('should not transliterate single letters in BG', function() {
+    testInput('и ', 'и ');
+  });
+
+  test.it('should not transliterate single letters in EN', function() {
+    testInput('I ', 'I ');
+  });
+
+  test.it('should not transliterate unknown BG words', function() {
+    testInput('вщхмцкл ', 'вщхмцкл ');
+  });
+
+  test.it('should not transliterate unknown EN words', function() {
+    testInput('cntrprtskl ', 'cntrprtskl ');
+  });
+
   test.it('should undo transliteration if Ctrl+Space are pressed', function() {
     testUndo('qerewa ');
   });
-
   test.it('should not affect words left and right of transliterated word', function() {
     testInMiddleOfText('old tore', 'цлотх ', 'old cloth tore');
   });
