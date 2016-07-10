@@ -169,6 +169,10 @@ test.describe('Dnevnik.bg search', function() {
     testInput('цлотх ', 'cloth ');
   });
 
+  test.it('should transliterate BG->LAT UPPERCASE keyboard layout correct ', function() {
+    testInput('Балл ', 'Ball ');
+  });
+
   test.it('should not transliterate BG->LAT when word is in both', function() {
     testInput('цар ', 'цар ');
   });
@@ -199,4 +203,5 @@ test.describe('Dnevnik.bg search', function() {
   test.it('should not affect words left and right of transliterated word', function() {
     testInMiddleOfText('old tore', 'цлотх ', 'old cloth tore');
   });
+
 });
