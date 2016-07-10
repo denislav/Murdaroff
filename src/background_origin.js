@@ -53,7 +53,7 @@ function wordnikLoaded(response) {
  */
 var isWordnikLoaded = false;
 /**
- * The Swagger object used to access the Wordnik web service
+ * The Swagger Object used to access the Wordnik web service
  * @memberof Background
  * @member 
  * @type {SwaggerClient}
@@ -109,7 +109,7 @@ function getAlphabet(word) {
  * @memberof Background
  */
 var keyboard = {
-	ENGLISH: "`qwertyuiop[]\\asdfghjkl;'zxcvbnm,./" + 'QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?',
+	ENGLISH: "`qwertyuiop[]\\asdfghjkl;'zxcvbnm,./" + '~QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?',
 	BULGARIAN_PHONETIC_NEW: "ючшертъуиопящьасдфгхйкл;'зжцвбнм,./" + 'ЮЧШЕРТЪУИОПЯЩѝАСДФГХЙКЛ:"ЗЖЦВБНМ„“?',
 	BULGARIAN_STANDARD: ",уеишщксдзц;„ьяаожгтнвмчюйъэфхпрлб" + 'ыУЕИШЩКСДЗЦ§“ѝЯАОЖГТНВМЧЮЙЪЭФХПРЛБ',
 	BULGARIAN_PHONETIC_TRADITIONAL: "явертъуиопшщюасдфгхйкл;'зьцжбн,./" + 'ЯВЕРТЪУИОПШЩЮАСДФГХЙКЛ:"ЗѝЦЖБНМ<>?',
@@ -153,7 +153,7 @@ keyboard.transliterate = function(word, fromKeyboard, toKeyboard) {
 /**
  * Implements the logic for transliteration OF incoming input.
  * @memberof Background
- * @param {object} request - Request coming from the content script contaning input word and other information.
+ * @param {Object} request - Request coming from the content script contaning input word and other information.
  * @param {function} sendResponse - The callback to call in order to respond to the content script request.
  */
 function tryCorrect(request, sendResponse) {
@@ -196,7 +196,7 @@ function tryCorrect(request, sendResponse) {
 	/**
 	 * Implements the logic for transliteration OF incoming input.
 	 * @memberof Background
-	 * @param {object} request - Request coming from the content script contaning input word and other information.
+	 * @param {Object} request - Request coming from the content script contaning input word and other information.
 	 * @param {function} sendResponse - The callback to call in order to respond to the content script request.
 	 */
 	function decideResponse(inputCorrect, transliterationCorrect) {
@@ -215,6 +215,15 @@ function tryCorrect(request, sendResponse) {
 	});
 }
 
+/**
+ * Processes requests from content script. There are 2 kinds of requests - 'isWordnikLoaded' and 'correctWord'.
+ * 'isWordnikLoaded' confirms if connection to Wordnik web service is established and ready to use.
+ * 'correctWord' checks if the received word is written in wrong keyboard layout and transliterates it to the correct one if so.
+ * @memberof Background
+ * @param {Object} request - Request coming from the content script contaning type of message, input word and other information.
+ * @param {Object} sender - Sender Request coming from the content script contaning input word and other information. 
+ * @param {function} sendResponse - The callback to call in order to respond to the content script request.
+ */
 function processMessage(request, sender, sendResponse) {
 	switch (request.message) {
 		case 'isWordnikLoaded':

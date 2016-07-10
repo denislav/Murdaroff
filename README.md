@@ -96,8 +96,9 @@ grunt doc
 Some things that need to be done
 
 * Make reusable asynchronous test methods using Promises to escape current callback hell
-* There is a functional issue in case of fast typing
+* There is a functional issue in case of fast typing - get the cursor before replacing text instead on "Space" event
 * Improve the coding style - many statics are used, update to ECMA6
 * Documentation not covering 100% of code.
-* Add case insensitive transliteration
+* Add case insensitive transliteration (ex. Цлотх)
+* Improve undo blocking condition - compare text content
 
